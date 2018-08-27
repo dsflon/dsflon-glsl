@@ -67,16 +67,16 @@ function LoadShader() {
 	postShaderCode = null;
 
 	new LoadShaderSource(
-		"../" + page + "/scene.vert",
-		"../" + page + "/scene.frag",
+		"./" + page + "/scene.vert",
+		"./" + page + "/scene.frag",
 		(shader) => {
 			sceneShaderCode = shader;
 			loadCheck();
 		}
 	);
 	new LoadShaderSource(
-		"../" + page + "/post.vert",
-		"../" + page + "/post.frag",
+		"./" + page + "/post.vert",
+		"./" + page + "/post.frag",
 		(shader) => {
 			postShaderCode = shader;
 			loadCheck();

@@ -1,0 +1,76 @@
+precision mediump float;
+uniform sampler2D texture;   // フレームバッファに描画したレンダリング結果
+uniform sampler2D textureUnit; // テクスチャユニット
+uniform float     time;      // 時間の経過
+varying vec2      vTexCoord; // テクスチャ座標
+
+uniform vec2  resolution;
+
+const   vec4  greenColor = vec4(0.2, 1.0, 0.5, 1.0);
+
+// ホワイトノイズを生成する乱数生成関数
+float rnd(vec2 n){
+    return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+}
+
+void main(){
+
+    vec2 p = (vec2(gl_FragCoord.x,gl_FragCoord.y) * 2.0 - resolution);
+
+    float aspectX = 4.0;
+    float aspectY = 3.0;
+
+    if( resolution.x * aspectY / aspectX > resolution.y ) { // 上下左右フィット
+        p /= max(resolution.x, resolution.y);
+        p.y *= aspectX / aspectY;
+    } else {
+        if( resolution.x > resolution.y ) {
+            p /= min(resolution.x, resolution.y);
+            p.x *= aspectY / aspectX;
+        } else {
+            p /= max(resolution.x, resolution.y);
+            p.x *= aspectY / aspectX;
+        }
+    }
+
+    vec2 ajustCenter = (p / 2.0) + 0.5;
+
+    // フレームバッファの描画結果をテクスチャから読み出す
+    vec4 samplerColor = texture2D(texture, vTexCoord);
+    vec4 samplerColor2 = texture2D(textureUnit, ajustCenter ); // 中心に寄せたりする
+
+    float s = sin(time*2.0);
+          s += sin(time*5.0);
+          s += sin(time*7.0);
+          s += sin(time*9.0);
+
+    float zure = 0.0015 + ( sin(time*60.0) * cos(time*30.0) * s * 0.003 ) * step(0.75, s * 0.5);
+
+    float r = texture2D(textureUnit, ajustCenter + zure ).r; // 中心に寄せたりする
+    float g = texture2D(textureUnit, ajustCenter ).g; // 中心に寄せたりする
+    float b = texture2D(textureUnit, ajustCenter - zure ).b; // 中心に寄せたりする
+
+    vec4 dest = samplerColor;
+
+    // ホワイトノイズを生成 @@@
+    float noise = rnd(gl_FragCoord.st + mod(time, 10.0));
+    if( resolution.x > 640.0 ) {
+        dest *= noise * 0.5 + 0.8;
+    }
+
+    float glich = s * p.y * (r + g + b) / 3.0;
+    // dest *= glich;
+
+    float scanLine = abs(sin(p.y * 200.0 + time * 5.0 )) ;
+          scanLine += abs(sin(p.y * 5.0 + time * 0.5 ));
+          if( resolution.x > 640.0 ) {
+              scanLine = scanLine * 0.5 + 0.9;// マイルド化
+          } else {
+              scanLine = scanLine * 0.5 + 2.0;// マイルド化
+          }
+    dest *= scanLine;
+
+    gl_FragColor = dest * vec4(r, g, b, 1.0);
+    // gl_FragColor = samplerColor2;
+
+}
